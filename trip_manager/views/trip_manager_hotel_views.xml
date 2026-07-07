@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- FORM VIEW -->
+    <record id="trip_manager_hotel_view_form" model="ir.ui.view">
+        <field name="name">trip.manager.hotel.view.form</field>
+        <field name="model">trip.manager.hotel</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+
+                    <field name="image" widget="image"
+                           class="oe_avatar"
+                           options="{'size': [160, 160]}"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Hotel Name"/>
+                        </h1>
+                        <div class="d-flex align-items-center gap-2">
+                            <field name="star_rating" widget="priority"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Contact Info">
+                            <field name="email"/>
+                            <field name="phone_number"/>
+                            <label for="street" string="Address"/>
+                            <div class="o_address_format">
+                                <field name="street"
+                                       placeholder="Street..."
+                                       class="o_address_street"/>
+                                <field name="street2"
+                                       placeholder="Street 2..."
+                                       class="o_address_street"/>
+                                <field name="city"
+                                       placeholder="City"
+                                       class="o_address_city"/>
+                                <field name="state_id"
+                                       placeholder="State"
+                                       class="o_address_state"/>
+                                <field name="zip"
+                                       placeholder="ZIP"
+                                       class="o_address_zip"/>
+                                <field name="country_id"
+                                       placeholder="Country"
+                                       class="o_address_country"/>
+                            </div>
+                            <field name="city_ids" widget="many2many_tags" string="Nearby Cities"/>
+                        </group>
+
+                        <group string="Hotel Policy">
+                            <field name="check_in"
+                                   widget="float_time"
+                                   string="Check-in Time"/>
+                            <field name="check_out"
+                                   widget="float_time"
+                                   string="Check-out Time"/>
+                            <field name="has_breakfast"/>
+                            <field name="extra_bed_available"/>
+                            <field name="extra_bed_price"
+                                   invisible="not extra_bed_available"
+                                   readonly="not extra_bed_available"
+                                   widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Room Types" name="room_types">
+                            <field name="room_type_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="max_occupancy"/>
+                                    <field name="room_rate"
+                                           widget="monetary"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- LIST VIEW -->
+    <record id="trip_manager_hotel_view_tree" model="ir.ui.view">
+        <field name="name">trip.manager.hotel.view.tree</field>
+        <field name="model">trip.manager.hotel</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="image" widget="image"
+                       options="{'size': [38, 38]}"/>
+                <field name="name"/>
+                <field name="star_rating" widget="priority"/>
+                <field name="city_ids" widget="many2many_tags"/>
+                <field name="check_in"  widget="float_time" string="Check-in"/>
+                <field name="check_out" widget="float_time" string="Check-out"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_trip_manager_hotel" model="ir.actions.act_window">
+        <field name="name">Hotels</field>
+        <field name="res_model">trip.manager.hotel</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

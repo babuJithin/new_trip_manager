@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="trip_manager_hotel_room_type_view_tree" model="ir.ui.view">
+        <field name="name">trip.manager.hotel.room.type.view.tree</field>
+        <field name="model">trip.manager.hotel.room.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="max_occupancy"/>
+                <field name="room_rate"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_trip_manager_hotel_room_type" model="ir.actions.act_window"> 
+        <field name="name">Room Types</field>
+        <field name="res_model">trip.manager.hotel.room.type</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- FORM VIEW -->
+    <record id="trip_manager_package_view_form" model="ir.ui.view">
+        <field name="name">trip.manager.package.view.form</field>
+        <field name="model">trip.manager.package</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        
+                        <button name="action_open_related_hotels"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-building">
+                            <field name="related_hotels_count" 
+                                   widget="statinfo" 
+                                   string="Hotels"/>
+                        </button>
+                    </div>
+                    <group col="3">
+                        <group>
+                            <field name="name"/>
+                            <field name="from_city_id"/>
+                            <field name="no_of_day"/>
+                            <field name="no_of_night"/>
+                        </group>
+                        <group>
+                            <field name="destination_city_id"/>
+                            <field name="package_type" widget="radio"/>
+                        </group>
+                        <group>
+                            <field name="image" widget="image" nolabel="1"
+                                   options="{'size': [300, 300]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Itinearies">
+                            <field name="itineary_ids">
+                                <list editable="bottom">
+                                    <field name="package_destination_city_id" column_invisible="1"/>
+                                    <field name="day_number"/>
+                                    <field name="description" widget="html"/>
+                                    <field name="destination_domain" column_invisible="1"/>
+                                    <field name="destination_ids" widget="many2many_tags" domain="destination_domain"/>
+                                    <field name="available_city_ids" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Included">
+                            <field name="included_items" widget="html" no_label="1"/>
+                        </page>
+                        <page string="Excluded">
+                            <field name="excluded_items" widget="html" no_label="1"/>
+                        </page>
+                        <page string=" Cancellation Policy">
+                            <field name="cancellation_policy" widget="html" no_label="1"/>
+                        </page>
+                        <page string="Terms &amp; Condition">
+                            <field name="terms_and_condition" widget="html" no_label="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- LIST VIEW -->
+    <record id="trip_manager_package_view_tree" model="ir.ui.view">
+        <field name="name">trip.manager.package.view.tree</field>
+        <field name="model">trip.manager.package</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="from_city_id"/>
+                <field name="no_of_day"/>
+                <field name="destination_city_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- KANBAN VIEW -->
+    <record id="trip_manager_package_view_kanban" model="ir.ui.view">
+        <field name="name">trip.manager.package.view.kanban</field>
+        <field name="model">trip.manager.package</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="id"/>
+                <field name="name"/>
+                <field name="image"/>
+                <field name="destination_city_id"/>
+                <field name="package_type"/>
+                <field name="no_of_day"/>
+                <field name="from_city_id"/>
+                <templates>
+                    <t t-name="card">
+
+                        <!-- Image —-->
+                        <div class="o_kanban_image">
+                            <img t-if="record.image.value"
+                                t-att-src="'/web/image/trip.manager.package/' + record.id.value + '/image'"
+                                alt="Package"
+                                style="width:100%; height:160px; object-fit:cover; border-radius:6px 6px 0 0;"/>
+                            <div t-else=""
+                                style="width:100%; height:160px; background:#e9ecef; border-radius:6px 6px 0 0; display:flex; align-items:center; justify-content:center; color:#adb5bd; font-size:13px;">
+                                No Image
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-2">
+
+                            <!-- Package Name -->
+                            <h5 class="fw-bold mb-1">
+                                <field name="name"/>
+                            </h5>
+
+                            <!-- Package Type + Category tags -->
+                            <div class="mb-1">
+                                <span class="badge rounded-pill text-bg-secondary">
+                                    <field name="package_type"/>
+                                </span>
+                            </div>
+
+                            <!-- Destination City -->
+                            <div class="d-flex align-items-center gap-1 text-muted small mb-1">
+                                <i class="fa fa-map-marker me-1" title="Destination"/>
+                                <field name="destination_city_id"/>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-between text-muted small mb-1">
+                                <span>
+                                    <i class="fa fa-plane me-1" title="Departure City"/>
+                                    From: <field name="from_city_id"/>
+                                </span>
+                                <span>
+                                    <i class="fa fa-calendar me-1" title="Duration"/>
+                                    <field name="no_of_day"/> Days
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_trip_manager_package" model="ir.actions.act_window"> 
+        <field name="name">Packages</field>
+        <field name="res_model">trip.manager.package</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+</odoo>

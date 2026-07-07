@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_trip_enquiry_quotation">
+        <style>
+            @page {
+                margin-top: 10mm; 
+                margin-bottom: 10mm;
+                margin-left: 10mm;
+                margin-right: 10mm;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            .page {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        </style>
+
+        <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+        <t t-call="web.basic_layout">
+
+        <div class="page" style="font-size:13px; margin-top: -45px;">
+
+            <!-- ================= TITLE ================= -->
+            <div style="text-align:center; margin-top: -45px; margin-bottom:15px;">
+                <h2 style="margin:0;" t-esc="o.package_id.name or 'Tour Package Quotation'"/>
+
+                <h4 style="margin:5px 0;">
+                    <t t-esc="o.no_of_day"/> Days
+                    <t t-if="o.destination_city_id">
+                        - <t t-esc="o.destination_city_id.name"/> Tour
+                    </t>
+                </h4>
+
+                <div style="margin-top:8px; font-size:13px;">
+                    <strong>Customer:</strong>
+                    <t t-esc="o.customer_id.name"/>
+                    |
+
+                    <strong>Travel Date:</strong>
+                    <t t-esc="o.tour_start_date" t-options='{"widget":"date"}'/>
+                    to
+                    <t t-esc="o.tour_end_date" t-options='{"widget":"date"}'/>
+                    |
+
+                    <strong>Adults:</strong>
+                    <t t-esc="o.no_of_adult"/>
+                    |
+
+                    <strong>Children:</strong>
+                    <t t-esc="o.no_of_child or 0"/>
+                </div>
+
+            </div>
+
+            <hr style="margin:10px 0;"/>
+
+            <!-- ================= ITINERARY ================= -->
+            <h4 style="margin:10px 0;">Itinerary</h4>
+
+            <t t-foreach="o.package_id.itineary_ids.sorted('day_number')" t-as="day">
+                <div style="margin-bottom:10px;">
+                    <strong>
+                        Day <t t-esc="day.day_number"/> :
+                        <t t-esc="', '.join(day.destination_ids.mapped('name'))"/>
+                    </strong>
+
+                    <div t-out="day.description" style="margin-top:3px;"/>
+                </div>
+            </t>
+
+            <hr style="margin:10px 0;"/>
+
+        <!-- ================= HOTEL TABLE ================= -->
+        <h4 style="margin:10px 0;">Hotel Details</h4>
+
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+
+            <thead style="background:#4CAF50; color:white;">
+                <tr>
+                    <th style="border:1px solid #ccc; padding:6px; width:8%;">Day</th>
+                    <th style="border:1px solid #ccc; padding:6px; width:25%;">Destinations</th>
+
+                    <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
+                        <th style="border:1px solid #ccc; padding:6px;">
+                            <t t-esc="opt.package_category.capitalize()"/> Hotel
+                        </th>
+                    </t>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <t t-foreach="o.option_ids and o.option_ids[0].booking_line_ids.sorted('actual_date')" t-as="line">
+                    <tr>
+
+                        <td style="border:1px solid #ccc; padding:5px;">
+                            Day <t t-esc="line.day_number or '-'"/>
+                        </td>
+
+                        <td style="border:1px solid #ccc; padding:5px;">
+                            <t t-esc="', '.join(line.destination_ids.mapped('name'))"/>
+                        </td>
+
+                        <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
+
+                            <t t-set="bl"
+                            t-value="[l for l in opt.booking_line_ids if l.actual_date == line.actual_date]"/>
+
+                            <td style="border:1px solid #ccc; padding:5px; text-align:center;">
+                                <t t-if="bl and bl[0].hotel_id">
+                                    <t t-esc="bl[0].hotel_id.name"/>
+                                </t>
+                                <t t-else="">-</t>
+                            </td>
+
+                        </t>
+
+                    </tr>
+                </t>
+
+            </tbody>
+
+        </table>
+            <hr style="margin:10px 0;"/>
+
+        <!-- ================= PRICING ================= -->
+        <h4 style="margin:10px 0;">
+            Offer Price for <t t-esc="o.no_of_pax"/> Person(s)
+        </h4>
+
+        <!-- Show table only if at least one option has a flight amount -->
+        <t t-set="has_flight" t-value="any(opt.flight_total for opt in o.option_ids)"/>
+
+        <!-- CASE 1: Flight charges exist -->
+        <t t-if="has_flight">
+            <table style="width:70%; border-collapse:collapse; font-size:12px;">
+                <thead style="background:#e0e0e0;">
+                    <tr>
+                        <th style="border:1px solid #ccc; padding:6px; text-align:left;">Package Category</th>
+                        <th style="border:1px solid #ccc; padding:6px; text-align:right;">Package Cost</th>
+                        <th style="border:1px solid #ccc; padding:6px; text-align:right;">Flight Ticket</th>
+                        <th style="border:1px solid #ccc; padding:6px; text-align:right;">Grand Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
+                        <tr>
+                            <td style="border:1px solid #ccc; padding:5px; font-weight:bold;">
+                                <t t-esc="opt.package_category.capitalize()"/>
+                            </td>
+                            <td style="border:1px solid #ccc; padding:5px; text-align:right;">
+                                <t t-esc="opt.selling_rate"
+                                t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                            </td>
+                            <td style="border:1px solid #ccc; padding:5px; text-align:right;">
+                                <t t-esc="opt.flight_total"
+                                t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                            </td>
+                            <td style="border:1px solid #ccc; padding:5px; text-align:right;">
+                                <t t-esc="opt.selling_rate + opt.flight_total"
+                                t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </t>
+
+        <!-- CASE 2: No flight charges -->
+        <t t-else="">
+            <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
+                <p style="margin:3px 0;">
+                    <strong>
+                        OFFER PRICE FOR <t t-esc="o.no_of_adult"/> PERSONS
+                        (With <t t-esc="opt.package_category.capitalize()"/>)
+                    </strong>
+                    :
+                    <t t-esc="opt.selling_rate"
+                    t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                </p>
+            </t>
+        </t>
+
+        <hr style="margin:10px 0;"/>
+
+            <!-- ================= INCLUSIONS ================= -->
+            <t t-if="o.package_id.included_items">
+                <h4 style="margin:10px 0;">Inclusions</h4>
+
+                <div style="font-size:12px; margin-bottom:10px;">
+                    <t t-out="o.package_id.included_items"/>
+                </div>
+            </t>
+
+            <!-- ================= EXCLUSIONS ================= -->
+            <t t-if="o.package_id.excluded_items">
+                <h4 style="margin:10px 0;">Exclusions</h4>
+
+                <div style="font-size:12px; margin-bottom:10px;">
+                    <t t-out="o.package_id.excluded_items"/>
+                </div>
+            </t>
+
+            <!-- ================= TERMS & CONDITIONS ================= -->
+            <t t-if="o.package_id.terms_and_condition">
+                <h4 style="margin:10px 0;">Terms &amp; Conditions</h4>
+
+                <div style="font-size:12px; margin-bottom:10px;">
+                    <t t-out="o.package_id.terms_and_condition"/>
+                </div>
+            </t>
+
+            <!-- ================= NOTE ================= -->
+            <div style="font-size:11px; color:#444; margin-top:10px;">
+                <strong>NOTE:</strong>
+                <ul style="margin-top:4px;">
+                    <li>Above rates are valid only for selected travel dates.</li>
+                    <li>Package cost may vary based on hotel selection.</li>
+                    <li>All rates are NETT.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        </t>
+        </t>
+        </t>
+
+    </template>
+</odoo>

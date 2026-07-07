@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- FORM VIEW -->
+    <record id="trip_manager_destination_category_view_form" model="ir.ui.view">
+        <field name="name">trip.manager.destination.category.view.form</field>
+        <field name="model">trip.manager.destination.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- LIST VIEW -->
+    <record id="trip_manager_destination_category_view_tree" model="ir.ui.view">
+        <field name="name">trip.manager.destination.category.view.tree</field>
+        <field name="model">trip.manager.destination.category</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_trip_manager_destination_category" model="ir.actions.act_window"> 
+        <field name="name">Destination Categories</field>
+        <field name="res_model">trip.manager.destination.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="addon_category_entry_ticket" model="trip.manager.addon.category">
+            <field name="name">Entry Ticket</field>
+        </record>
+        <record id="addon_category_guide" model="trip.manager.addon.category">
+            <field name="name">Guide</field>
+            <field name="is_guide_category">True</field>
+        </record>
+        <record id="addon_category_breakfast" model="trip.manager.addon.category">
+            <field name="name">Breakfast</field>
+        </record>
+        <record id="addon_category_lunch" model="trip.manager.addon.category">
+            <field name="name">Lunch</field>
+        </record>
+        <record id="addon_category_dinner" model="trip.manager.addon.category">
+            <field name="name">Dinner</field>
+        </record>
+    </data>
+</odoo>

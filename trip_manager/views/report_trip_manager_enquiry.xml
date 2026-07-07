@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report Action -->
+    <record id="action_report_trip_enquiry_quotation" model="ir.actions.report">
+        <field name="name">Tour Package Quotation</field>
+        <field name="model">trip.manager.enquiry</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">trip_manager.report_trip_enquiry_quotation</field>
+        <field name="report_file">trip_manager.report_trip_enquiry_quotation</field>
+        <field name="binding_model_id" ref="trip_manager.model_trip_manager_enquiry"/>
+        <field name="binding_type">report</field>
+        <field name="group_ids" eval="[(6, 0, [ref('trip_manager.group_trip_manager_agent')])]"/>
+    </record>
+</odoo>

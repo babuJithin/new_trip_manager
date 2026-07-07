@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- FORM VIEW -->
+    <record id="res_partner_view_form" model="ir.ui.view">
+        <field name="name">res.partner.view.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='contact_addresses']" position="attributes">
+                <attribute name="invisible">is_guide</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']" position="attributes">
+                <attribute name="invisible">is_guide</attribute>
+            </xpath>
+            <xpath expr="//page[@name='internal_notes']" position="attributes">
+                <attribute name="invisible">is_guide</attribute>
+            </xpath>
+            <notebook position="inside">
+                <page string="Guide Info" name="guide_info" invisible="not is_guide">
+                    <group>
+                        <group string="Professional Info">
+                            <field name="experience_years"/>
+                            <field name="specialization"/>
+                            <field name="spoken_language"/>
+                        </group>
+                        <group string="Pricing">
+                            <field name="charge_per_day" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Serviceable Cities">
+                        <field name="city_ids" widget="many2many_tags" nolabel="1"/>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+    <!-- LIST VIEW  -->
+    <record id="res_partner_view_tree_guide" model="ir.ui.view">
+        <field name="name">res.partner.view.tree.guide</field>
+        <field name="model">res.partner</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="specialization"/>
+                <field name="experience_years" string="Exp (Yrs)"/>
+                <field name="spoken_language"/>
+                <field name="charge_per_day"   widget="monetary"/>
+                <field name="city_ids"         widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_res_partner_guides" model="ir.actions.act_window">
+        <field name="name">Guides</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_guide', '=', True)]</field>
+        <field name="context">{'default_is_guide': True}</field>
+        <field name="view_id" ref="res_partner_view_tree_guide"/>
+    </record>
+
+</odoo>

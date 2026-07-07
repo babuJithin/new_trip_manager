@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--Root-->
+    <menuitem id="trip_manager_menu_root" 
+            name="Trip Manager" />
+
+    <!--Enquiry-->
+    <menuitem id="trip_manager_enquiry_menu"
+            name="Enquiries"
+            parent="trip_manager_menu_root"
+            sequence="10"
+            action="action_trip_manager_enquiry"/>
+
+    <!--Package-->
+    <menuitem id="trip_manager_package_menu"
+            name="Packages"
+            parent="trip_manager_menu_root"
+            sequence="20"
+            action="action_trip_manager_package"/>
+
+    <!--Configuration-->
+    <menuitem id="trip_manager_configuration_menu" 
+            name="Configuration" 
+            sequence="30"
+            parent="trip_manager_menu_root" />
+
+    <!--Travel Locations-->
+    <menuitem id="trip_manager_location_config_menu"
+              name="Travel Locations"
+              parent="trip_manager_configuration_menu"
+              sequence="10"/>
+
+    <menuitem id="trip_manager_city_menu"
+            name="Cities"
+            sequence="10"
+            parent="trip_manager_location_config_menu"
+            action="action_trip_manager_city"/>
+
+    <menuitem id="trip_manager_destination_menu"
+            name="Destinations"
+            sequence="20"
+            parent="trip_manager_location_config_menu"
+            action="action_trip_manager_destination"/>
+
+    <menuitem id="trip_manager_destination_category_menu"
+            name="Destination Categories"
+            sequence="30"
+            parent="trip_manager_location_config_menu"
+            action="action_trip_manager_destination_category"/>
+
+    <!--Hotel Management-->
+    <menuitem id="trip_manager_hotel_management_menu"
+            name="Hotel Management"
+            sequence="20"
+            parent="trip_manager_configuration_menu"/>
+
+    <menuitem id="trip_manager_hotel_menu"
+            name="Hotels"
+            sequence="10"
+            parent="trip_manager_hotel_management_menu"
+            action="action_trip_manager_hotel"/>
+
+    <!--Activities-->
+    <menuitem id="trip_manager_activities_menu"
+            name="Activities"
+            sequence="30"
+            parent="trip_manager_configuration_menu"/>
+
+    <menuitem id="trip_manager_activity_menu"
+            name="Activities"
+            sequence="10"
+            parent="trip_manager_activities_menu"
+            action="action_trip_manager_activity"/>
+
+    <!--Operations-->
+    <menuitem id="trip_manager_operations_menu"
+            name="Operations"
+            sequence="40"
+            parent="trip_manager_configuration_menu"/>
+
+    <menuitem id="trip_manager_vehicle_menu"
+            name="Vehicles"
+            sequence="10"
+            parent="trip_manager_operations_menu"
+            action="action_trip_manager_vehicle"/>
+
+    <menuitem id="trip_manager_guide_menu" 
+            name="Guides" 
+            sequence="20" 
+            parent="trip_manager_operations_menu" 
+            action="trip_manager.action_res_partner_guides"/>
+
+    <menuitem id="menu_trip_manager_addon_category"
+                name="Addon Categories"
+                sequence="30"
+                parent="trip_manager_operations_menu"
+                action="action_trip_manager_addon_category"/>
+</odoo>
