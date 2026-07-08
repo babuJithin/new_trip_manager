@@ -46,6 +46,9 @@ class TripManagerEnquiryOption(models.Model):
     profit_amount = fields.Monetary(string='Profit', compute='_compute_profit', store=True, currency_field='currency_id')
     profit_percentage = fields.Float(string='Profit (%)', compute='_compute_profit', store=True, digits=(16, 2))
     flight_total = fields.Monetary(string='Flight Total', compute='_compute_flight_total', store=True)
+    is_selected = fields.Boolean(string='Selected', default=False, copy=False,
+                             help='The package option chosen by the customer. '
+                                  'Exactly one option must be selected before confirmation.')
     
     flight_line_ids = fields.One2many('trip.manager.flight.line', 'option_id', string='Flights')
     enquiry_id   = fields.Many2one('trip.manager.enquiry', ondelete='cascade')

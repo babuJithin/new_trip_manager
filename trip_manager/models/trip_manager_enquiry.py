@@ -180,11 +180,17 @@ class TripManagerEnquiry(models.Model):
         self.state = 'send'
 
     def action_confirm(self):
-        """Confirms the enquiry, indicating the customer has accepted
-        the quotation and the booking is proceeding."""
-        
-        self.ensure_one()
-        self.state = 'confirmed'
+        """Confirms the enquiry. Requires exactly one package option
+        to be selected by the customer."""
+
+        for enquiry in self:
+            selected = enquiry.option_ids.filtered('is_selected')
+            if len(selected) != 1:
+                raise UserError(_(
+                    'Please select exactly one package option before confirming. '
+                    'Currently %s option(s) are selected.'
+                ) % len(selected))
+        self.write({'state': 'confirmed'})
         
     def action_cancel(self):
         """Cancels the enquiry. cancelled enquiry can be reopened via Reset to Draft."""

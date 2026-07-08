@@ -81,6 +81,7 @@
                                     'default_tour_start_date': tour_start_date
                                 }">
                                 <list>
+                                    <field name="is_selected" widget="boolean_toggle"/>
                                     <field name="package_category" string="Package Category"/>
                                     <field name="total_accomodation_cost" widget="monetary" string="Accommodation"/>
                                     <field name="total_transport_cost" widget="monetary" string="Transportation"/>
