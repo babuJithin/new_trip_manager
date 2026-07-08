@@ -24,23 +24,17 @@ class TripManagerBookingLine(models.Model):
     day_number = fields.Integer(string='Day', compute='_compute_day_number', store=True)    
     itineary_description = fields.Html(string='Description', store=True)
     star_rating = fields.Selection(related='hotel_id.star_rating', string='Star Rating')
-    has_breakfast = fields.Boolean(related='hotel_id.has_breakfast', string='Breakfast Included')
     check_in = fields.Float(related='hotel_id.check_in', string='Check-in')
     check_out = fields.Float(related='hotel_id.check_out', string='Check-out')
-    extra_bed_available = fields.Boolean(related='hotel_id.extra_bed_available', string='Extra Bed Available')
-    extra_bed_price = fields.Monetary(related='hotel_id.extra_bed_price', string='Extra Bed Price', 
-                                      currency_field='currency_id')
-    room_rate = fields.Monetary(related='room_type_id.room_rate', string='Room Rate', 
-                                       currency_field='currency_id')
     max_occupancy = fields.Integer(related='room_type_id.max_occupancy', string='Max Occupancy')
     no_of_rooms = fields.Integer(string='No of Rooms', default=1)
     no_of_child = fields.Integer(related='enquiry_id.no_of_child', string='Childs')
     no_of_adult = fields.Integer(related='enquiry_id.no_of_adult', string='Adults')
-    room_cost = fields.Monetary(string='Room Cost', compute='_compute_costs', store=True, 
-                                currency_field='currency_id')
+    room_rate = fields.Monetary(string='Room Cost', compute='_compute_rates', store=True, 
+                                currency_field='currency_id', readonly=False)
     no_of_extra_bed = fields.Integer(string='No of Extra Rooms', default=0)
-    extra_bed_cost = fields.Monetary(string='Extra Bed Cost', compute='_compute_costs', store=True, 
-                                     currency_field='currency_id')
+    extra_bed_price = fields.Monetary(string='Extra Bed Cost', compute='_compute_rates', store=True, 
+                                     currency_field='currency_id', readonly=False)
     total_line_cost = fields.Monetary(string='Day Total', compute='_compute_costs', store=True, 
                                       currency_field='currency_id')
     
@@ -62,15 +56,24 @@ class TripManagerBookingLine(models.Model):
     # ------------------------------------------------------------------------------
     #   MARK: COMPUTE/OVERRIDDEN METHODS
     # ------------------------------------------------------------------------------
+    @api.depends('room_type_id')
+    def _compute_rates(self):
+        """Pulls default room rate and extra bed price from the selected
+        room type. Runs only when room_type_id changes, so manual
+        overrides typed by the user are preserved."""
+
+        for line in self:
+            line.room_rate = line.room_type_id.room_rate
+            line.extra_bed_price = line.room_type_id.extra_bed_price
+
     @api.depends('room_rate', 'no_of_rooms', 'extra_bed_price', 'no_of_extra_bed')
     def _compute_costs(self):
-        """Calculates room cost, extra bed cost, and total line cost
-            based on room rate, number of rooms, extra bed price, and extra bed count."""
-        
+        """Calculates the day total from the current (possibly manually
+        edited) rates and counts."""
+
         for line in self:
-            line.room_cost       = line.room_rate  * line.no_of_rooms
-            line.extra_bed_cost  = line.extra_bed_price * line.no_of_extra_bed
-            line.total_line_cost = line.room_cost + line.extra_bed_cost
+            line.total_line_cost = (line.room_rate * line.no_of_rooms
+                                    + line.extra_bed_price * line.no_of_extra_bed)
 
     @api.onchange('itineary_id')
     def _onchange_itineary_id(self):

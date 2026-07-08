@@ -62,13 +62,10 @@
                                             context="{'preferred_stars': package_category}"/>
                                     <field name="room_type_id"
                                            domain="[('hotel_id', '=', hotel_id)]"/>
-                                    <field name="room_rate" readonly="1"/>
-                                    <field name="no_of_extra_bed"/>
-                                    <field name="extra_bed_price"
-                                           readonly="1" optional="show"/>
+                                    <field name="room_rate"/>
                                     <field name="no_of_rooms"/>
-                                    <field name="extra_bed_cost"
-                                           readonly="1" optional="hide"/>
+                                    <field name="extra_bed_price"/>
+                                    <field name="no_of_extra_bed"/>
                                     <field name="total_line_cost" readonly="1"/>
                                     <field name="currency_id" column_invisible="1"/>
                                 </list>
