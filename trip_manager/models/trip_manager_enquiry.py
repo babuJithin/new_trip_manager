@@ -3,7 +3,7 @@
 
 from odoo import _, api, fields, models
 from datetime import date
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 
 import logging
 
@@ -150,11 +150,25 @@ class TripManagerEnquiry(models.Model):
     
     @api.model_create_multi
     def create(self, vals_list):
+        """Assigns a unique sequence reference (e.g. ENQ00001) to new
+        enquiries at creation time, unless a name was explicitly provided."""
+        
         for vals in vals_list:
             if vals.get('name', _("New")) == _("New"):
                 vals['name'] = self.env['ir.sequence'].next_by_code(
                     'trip.manager.enquiry') or _("New")
         return super().create(vals_list)
+    
+    @api.ondelete(at_uninstall=False)
+    def _unlink_except_draft_or_cancel(self):
+        """Prevents deletion of enquiries that are in progress or confirmed;
+        they must be cancelled first."""
+        
+        for enquiry in self:
+            if enquiry.state not in ('draft', 'cancel'):
+                raise UserError(_(
+                    "You can not delete a enquiry quotation or a confirmed enquiry."
+                    " You must first cancel it."))
     # ------------------------------------------------------------------------------
     #   MARK: BUTTON METHODS
     # ------------------------------------------------------------------------------
@@ -166,11 +180,17 @@ class TripManagerEnquiry(models.Model):
         self.state = 'send'
 
     def action_confirm(self):
-        """Confirms the enquiry, indicating the customer has accepted
-        the quotation and the booking is proceeding."""
-        
-        self.ensure_one()
-        self.state = 'confirmed'
+        """Confirms the enquiry. Requires exactly one package option
+        to be selected by the customer."""
+
+        for enquiry in self:
+            selected = enquiry.option_ids.filtered('is_selected')
+            if len(selected) != 1:
+                raise UserError(_(
+                    'Please select exactly one package option before confirming. '
+                    'Currently %s option(s) are selected.'
+                ) % len(selected))
+        self.write({'state': 'confirmed'})
         
     def action_cancel(self):
         """Cancels the enquiry. cancelled enquiry can be reopened via Reset to Draft."""

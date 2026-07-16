@@ -38,11 +38,8 @@ class TripManagerHotel(models.Model):
         ('4', '4 star'),
         ('5', '5 star'),
     ], string='Star Rating')
-    extra_bed_available = fields.Boolean(string='Extra Bed Available')
-    extra_bed_price = fields.Monetary(string='Extra Bed Price', currency_field='currency_id')
     check_in = fields.Float(string='Check-in Time')
     check_out = fields.Float(string='Check-out Time')
-    has_breakfast = fields.Boolean(string='Breakfast')
              
     city = fields.Char(string='City')
     state_id = fields.Many2one('res.country.state', string='State', domain="[('country_id', '=?', country_id)]")
