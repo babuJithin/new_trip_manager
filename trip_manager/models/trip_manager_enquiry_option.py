@@ -28,8 +28,6 @@ class TripManagerEnquiryOption(models.Model):
         ('luxury',   'Luxury'),
     ], string='Package Category', required=True, store=True)
     tour_start_date = fields.Date(related='enquiry_id.tour_start_date', string='Tour Start Date', store=True)
-    tour_end_date = fields.Date(related='enquiry_id.tour_end_date', string='Tour End Date', store=True)
-
     total_accomodation_cost = fields.Monetary(string='Total Trip Cost', 
                                             compute='_compute_total_accomodation_cost', store=True, currency_field='currency_id')
     total_transport_cost = fields.Monetary(string='Total Transport Cost', 
@@ -38,19 +36,7 @@ class TripManagerEnquiryOption(models.Model):
                                     store=True, currency_field='currency_id')
     total_amount = fields.Monetary(string='Total Amount', compute='_compute_total_amount', store=True, 
                                 currency_field='currency_id')
-    margin_surplus = fields.Float(string='Margin (%)', digits=(16, 2), default=0.0)
-    min_selling_rate = fields.Monetary(string='Minimum Selling Rate',compute='_compute_min_selling_rate', 
-                                       store=True, currency_field='currency_id')
-    selling_rate = fields.Monetary(string='Selling Rate', compute='_compute_selling_rate', store=True, 
-                                   readonly=False, currency_field='currency_id')
-    profit_amount = fields.Monetary(string='Profit', compute='_compute_profit', store=True, currency_field='currency_id')
-    profit_percentage = fields.Float(string='Profit (%)', compute='_compute_profit', store=True, digits=(16, 2))
-    flight_total = fields.Monetary(string='Flight Total', compute='_compute_flight_total', store=True)
-    is_selected = fields.Boolean(string='Selected', default=False, copy=False,
-                             help='The package option chosen by the customer. '
-                                  'Exactly one option must be selected before confirmation.')
     
-    flight_line_ids = fields.One2many('trip.manager.flight.line', 'option_id', string='Flights')
     enquiry_id   = fields.Many2one('trip.manager.enquiry', ondelete='cascade')
     package_id = fields.Many2one(related='enquiry_id.package_id', string='Package', store=True)
     booking_line_ids   = fields.One2many('trip.manager.booking.line', 'option_id', string='Booking Lines')
@@ -58,16 +44,10 @@ class TripManagerEnquiryOption(models.Model):
                                          string='Transportation')
     addon_ids = fields.One2many('trip.manager.enquiry.addon', 'option_id', string='Inclusions')
     currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
-    package_itineary_ids = fields.One2many(related='package_id.itineary_ids', string='Itinerary Overview')
         
     # ------------------------------------------------------------------------------
     #   MARK: COMPUTE/OVERRIDDEN METHODS
     # ------------------------------------------------------------------------------
-    @api.depends('flight_line_ids.total')
-    def _compute_flight_total(self):
-        for option in self:
-            option.flight_total = sum(option.flight_line_ids.mapped('total'))
-            
     @api.depends('addon_ids.cost')
     def _compute_total_addon_cost(self):
         """Computes the total cost of all add-on inclusions such as
@@ -104,57 +84,59 @@ class TripManagerEnquiryOption(models.Model):
             
     @api.model
     def default_get(self, fields_list):
-        """Overrides default_get to pre-populate accommodation lines and entry
-        ticket addons from the selected package's itinerary when a new option
-        is created. Computes actual travel dates per day based on the tour
-        start date. Accommodation lines are limited to the package's number
-        of nights, so no line is created for the checkout day. Entry ticket
-        addons are auto-fetched from destinations that have entry tickets
-        enabled."""
-
+        """Overrides default_get to pre-populate accommodation and transportation lines
+        from the selected package's itinerary when a new option is created.
+        Computes actual travel dates per day based on the tour start date."""
+        
         defaults = super().default_get(fields_list)
         package_id = (defaults.get('package_id') or self.env.context.get('default_package_id'))
         if package_id:
             package = self.env['trip.manager.package'].browse(package_id)
             start_date = defaults.get('tour_start_date') or \
-                self.env.context.get('default_tour_start_date')
+             self.env.context.get('default_tour_start_date')
             if start_date:
                 start_date = fields.Date.from_string(start_date)
-
             acc_lines = []
-            addon_lines = []
-            itineraries = package.itineary_ids.sorted('day_number')
-            total_days = len(itineraries)
-            no_of_nights = package.no_of_night or (total_days - 1 if total_days else 0)
-
-            entry_ticket_category = self.env.ref(
-                'trip_manager.addon_category_entry_ticket',raise_if_not_found=False)
-            seen_destinations = set()
-
-            for index, itineary in enumerate(itineraries):
-                actual_date = itineary._get_actual_date(start_date)
-                if index < no_of_nights:
-                    acc_lines.append((0, 0, {
-                        'itineary_id': itineary.id,
-                        'actual_date': actual_date,
-                        'destination_ids': [(6, 0, itineary.destination_ids.ids)],
-                    }))
-                for destination in itineary.destination_ids:
-                    if destination.id in seen_destinations:
-                        continue
-                    if destination.has_entry_ticket and destination.entry_ticket_price:
-                        addon_lines.append((0, 0, {
-                            'category_id': entry_ticket_category.id if entry_ticket_category else False,
-                            'description': destination.name,
-                            'cost': destination.entry_ticket_price,
-                        }))
-                    seen_destinations.add(destination.id)
-
-            defaults['booking_line_ids'] = acc_lines
-            if addon_lines:
-                defaults['addon_ids'] = addon_lines
+            trn_lines = []
+            for itineary in package.itineary_ids.sorted('day_number'):
+                day_num = itineary.day_number
+                actual_date = False
+                if start_date and day_num:
+                    actual_date = start_date + timedelta(days=day_num - 1)
+                acc_lines.append((0, 0, {
+                    'itineary_id': itineary.id,
+                    'day_number': day_num,      
+                    'actual_date': actual_date, 
+                    'package_category': defaults.get('package_category') or
+                    self.env.context.get('default_package_category'),
+                    'destination_ids': [(6,0, itineary.destination_ids.ids)],
+                    'itineary_description': itineary.description,
+                }))
+                trn_lines.append((0, 0, {
+                    'itineary_id': itineary.id,
+                    'day_number': day_num,      
+                    'actual_date': actual_date, 
+                }))
+            defaults['booking_line_ids']   = acc_lines
+            defaults['transport_line_ids'] = trn_lines
         return defaults
         
+    @api.constrains('enquiry_id', 'package_category')
+    def _check_unique_package_category(self):
+        """Ensures no duplicate package category exists for the same enquiry,
+        preventing two Standard or two Deluxe options from being created."""
+        
+        for rec in self:
+            duplicate = self.search([
+                ('enquiry_id', '=', rec.enquiry_id.id),
+                ('package_category', '=', rec.package_category),
+                ('id', '!=', rec.id),
+            ])
+            if duplicate:
+                raise ValidationError(
+                    f'Package category "{rec.package_category}" already exists for this enquiry!'
+                )
+                
     @api.model_create_multi
     def create(self, vals_list):
         """Overrides create to sync the package category from the option
@@ -169,8 +151,8 @@ class TripManagerEnquiryOption(models.Model):
     
     @api.constrains('package_category', 'enquiry_id')
     def _check_unique_category(self):
-        """Ensures no duplicate package category exists for the same enquiry,
-        preventing two Standard or two Deluxe options from being created"""
+        """Secondary uniqueness check ensuring only one option per package
+        category is allowed per enquiry. Raises a ValidationError on violation."""
         
         for rec in self:
             if not rec.package_category or not rec.enquiry_id:
@@ -185,32 +167,25 @@ class TripManagerEnquiryOption(models.Model):
                     "Only one %s package is allowed per enquiry!" % rec.package_category
                 )
                 
-    @api.depends('total_amount', 'margin_surplus')
-    def _compute_min_selling_rate(self):
-        """Computes the minimum selling rate by applying the margin
-        percentage on top of the total net cost. With margin at 0,
-        the minimum selling rate equals the total cost."""
-
-        for rec in self:
-            rec.min_selling_rate = rec.total_amount * (1 + (rec.margin_surplus or 0.0) / 100)
-
-    @api.depends('min_selling_rate')
-    def _compute_selling_rate(self):
-        """Defaults the selling rate to the minimum selling rate whenever
-        the margin or total cost changes. Editable (readonly=False), so
-        the agent can manually override it with a custom rate."""
-
-        for rec in self:
-            rec.selling_rate = rec.min_selling_rate
-
-    @api.depends('selling_rate', 'total_amount')
-    def _compute_profit(self):
-        """Computes profit (selling rate - total cost) and profit
-        percentage relative to the selling rate."""
-
-        for rec in self:
-            rec.profit_amount = rec.selling_rate - rec.total_amount
-            rec.profit_percentage = (
-                (rec.profit_amount / rec.selling_rate) * 100
-                if rec.selling_rate else 0.0
-            )
+# ------------------------------------------------------------------------------
+#   MARK: UTILITY METHODS
+# ------------------------------------------------------------------------------
+    def action_debug_booking_lines(self):
+        """Debug utility that logs booking line and itinerary details
+        for this option to the server log. Used during development
+        to verify hotel and itinerary ID matching."""
+        
+        for opt in self:
+            for bl in opt.booking_line_ids:
+                _logger.warning(
+                    "OPTION: %s | BL itineary_id: %s (id=%s) | hotel: %s",
+                    opt.package_category,
+                    bl.itineary_id.name if bl.itineary_id else 'None',
+                    bl.itineary_id.id,
+                    bl.hotel_id.name if bl.hotel_id else 'No hotel'
+                )
+            for day in opt.package_id.itineary_ids:
+                _logger.warning(
+                    "PACKAGE itineary day_number: %s id: %s",
+                    day.day_number, day.id
+                )

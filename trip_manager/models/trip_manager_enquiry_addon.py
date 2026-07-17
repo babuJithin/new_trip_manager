@@ -15,6 +15,7 @@ class TripManagerEnquiryAddon(models.Model):
     # ------------------------------------------------------------------------------
     #   MARK: FIELDS
     # ------------------------------------------------------------------------------
+    name = fields.Char(string='Item')
     description = fields.Char(string='Description')
     is_guide_category = fields.Boolean(related='category_id.is_guide_category', store=False)
     cost = fields.Monetary(string='Cost', currency_field='currency_id')    

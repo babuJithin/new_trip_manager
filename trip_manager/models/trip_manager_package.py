@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import api, fields, models
 
 import logging
 
@@ -21,26 +20,26 @@ class TripManagerPackage(models.Model):
     # ------------------------------------------------------------------------------
     #   MARK: FIELDS
     # ------------------------------------------------------------------------------
-    name = fields.Char(string='Package Name', required=True )
+    name = fields.Char(string='Pckage Name', required=True )
     image = fields.Image(string="Image", max_width=512, max_height=512)
-    no_of_day = fields.Integer(string='No Of Days', required=True)
-    no_of_night = fields.Integer(string='No of Nights', required=True, default=0)
+    from_city = fields.Char(string='From City', required=True)
+    no_of_day = fields.Integer(string='No Of Day', required=True)
     included_items = fields.Html(string="Included")
     excluded_items = fields.Html(string="Excluded")
     cancellation_policy = fields.Html(string="Cancellation Policy")
     terms_and_condition = fields.Html(string="Terms & Conditions")
-    package_type= fields.Selection([
+    package_category = fields.Selection([
         ('domestic', 'Domestic'),
         ('international', 'International')
-    ], string='Package Type', default='domestic')
+    ], string='Package category')
+    margin_surplus = fields.Float(string='Margin Surplus (%)')
     visa_fee = fields.Monetary(string="Visa Fee", currency_field='currency_id')
     related_hotels_count = fields.Integer(string="Hotel Count", compute='_compute_related_hotels_count')
     
-    from_city_id = fields.Many2one('trip.manager.city', string='From City')
     currency_id = fields.Many2one('res.currency', string='Currency', 
                                   default=lambda self: self.env.company.currency_id)
     destination_city_id = fields.Many2one('trip.manager.city', string='Destination City')
-    itineary_ids = fields.One2many('trip.manager.itineary','package_id', string="Itineraries")
+    itineary_ids = fields.One2many('trip.manager.itineary','package_id', string="Itinearies")
     
     # ------------------------------------------------------------------------------
     #   MARK: COMPUTE/OVERRIDDEN METHODS
@@ -58,17 +57,6 @@ class TripManagerPackage(models.Model):
                 rec.related_hotels_count = len(city_hotels)
             else:
                 rec.related_hotels_count = 0
-                
-    @api.constrains('no_of_day', 'no_of_night')
-    def _check_days_nights(self):
-        """Ensure day/night counts are positive"""
-        
-        _logger.info("CONSTRAINT FIRED: days=%s nights=%s", self.no_of_day, self.no_of_night)
-        for record in self:
-            if record.no_of_day <= 0:
-                raise ValidationError(_("Number of Days must be greater than zero."))
-            if record.no_of_night < 0:
-                raise ValidationError(_("Number of Nights cannot be negative."))
 
     def action_open_related_hotels(self):
         """Opens a filtered list view of all hotels linked to the package's

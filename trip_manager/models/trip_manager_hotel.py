@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from __future__ import annotations
+
 from odoo import api, fields, models
 
+import typing
+if typing.TYPE_CHECKING:
+    from .res_country import Country, CountryState
 
-CATEGORY_STAR_MAP = {
-    'standard': ['1', '2'],
-    'deluxe': ['3'],
-    'premium': ['4'],
-    'luxury': ['5'],
-}
 
 class TripManagerHotel(models.Model):
     """Stores master records for hotels across travel destinations and cities,
@@ -28,6 +27,7 @@ class TripManagerHotel(models.Model):
     street = fields.Char()
     street2 = fields.Char()
     zip = fields.Char(change_default=True)
+    city = fields.Char()
     email = fields.Char(string='Email', required=True)
     phone_number = fields.Char(string='Phone Number', required=True)
     star_rating = fields.Selection([
@@ -38,14 +38,17 @@ class TripManagerHotel(models.Model):
         ('4', '4 star'),
         ('5', '5 star'),
     ], string='Star Rating')
+    extra_bed_available = fields.Boolean(string='Exta Bed Available')
+    extra_bed_price = fields.Monetary(string='Extra Bed Price', currency_field='currency_id')
     check_in = fields.Float(string='Check-in Time')
     check_out = fields.Float(string='Check-out Time')
+    has_breakfast = fields.Boolean(string='Breakfast')
              
-    city = fields.Char(string='City')
-    state_id = fields.Many2one('res.country.state', string='State', domain="[('country_id', '=?', country_id)]")
-    country_id = fields.Many2one('res.country', string='Country')
     currency_id = fields.Many2one('res.currency', string='Currency', 
                                   default=lambda self: self.env.company.currency_id)   
+    state_id: CountryState = fields.Many2one("res.country.state", string='State', ondelete='restrict', 
+                                             domain="[('country_id', '=?', country_id)]")
+    country_id: Country = fields.Many2one('res.country', string='Country', ondelete='restrict')
     city_ids = fields.Many2many('trip.manager.city', string='Cities')
     room_type_ids = fields.One2many('trip.manager.hotel.room.type', 'hotel_id', string="Room Types")
     
@@ -65,36 +68,6 @@ class TripManagerHotel(models.Model):
         display_hour = hours % 12 or 12
         return f"{display_hour}:{minutes:02d} {period}"
     
-    @api.model
-    def name_search(self, name='', domain=None, operator='ilike', limit=100):
-        """Orders dropdown results so hotels matching the enquiry option's
-        package category star tier appear first, then higher-tier hotels
-        in ascending order (upgrades), then lower-tier hotels in
-        descending order (nearest downgrade first)."""
-
-        category = self.env.context.get('preferred_stars')
-        stars = CATEGORY_STAR_MAP.get(category)
-        if not stars:
-            return super().name_search(name=name, domain=domain, operator=operator, limit=limit)
-        domain = domain or []
-        name_domain = [('name', operator, name)] if name else []
-        preferred = self.search(domain + name_domain
-                                + [('star_rating', 'in', stars)],
-                                order='star_rating asc, name asc')
-
-        top_tier = int(max(stars))
-        rest = self.search(domain + name_domain
-                           + [('id', 'not in', preferred.ids)])
-        rest = rest.sorted(key=lambda h: (
-            0 if int(h.star_rating or 0) > top_tier else 1,
-            int(h.star_rating or 0) if int(h.star_rating or 0) > top_tier
-            else -int(h.star_rating or 0),
-            h.name or ''
-        ))
-        records = (preferred + rest)[:limit]
-        return [(rec.id, rec.display_name) for rec in records]
-    
-    @api.depends('name', 'star_rating')
     def _compute_display_name(self):
         """Overrides display name to prefix the hotel name with star emoji icons
         based on the star rating, improving readability in dropdown selections.
@@ -111,17 +84,3 @@ class TripManagerHotel(models.Model):
         for rec in self:
             stars = star_display.get(rec.star_rating, '')
             rec.display_name = f"{stars} {rec.name}"
-
-    @api.onchange('state_id')
-    def _onchange_state_id(self):
-        """Auto-fills country when a state is selected."""
-        
-        if self.state_id:
-            self.country_id = self.state_id.country_id
-
-    @api.onchange('country_id')
-    def _onchange_country_id(self):
-        """Clears state if it does not belong to the selected country."""
-        
-        if self.state_id and self.state_id.country_id != self.country_id:
-            self.state_id = False

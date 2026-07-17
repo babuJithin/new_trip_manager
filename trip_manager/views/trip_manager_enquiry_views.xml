@@ -8,8 +8,8 @@
         <field name="arch" type="xml">
             <form string="Trip Enquiry">
                 <header>
-                    <button name="action_set_send"
-                            string="Send"
+                    <button name="action_set_estimate"
+                            string="Set to Estimate"
                             type="object"
                             class="btn-primary"
                             invisible="state != 'draft'"/>
@@ -22,13 +22,7 @@
                             string="Confirm Booking"
                             type="object"
                             class="btn-primary"
-                            invisible="state != 'send'"/>
-                    <button name="action_cancel"
-                            string="Cancel"
-                            type="object"
-                            class="btn-secondary"
-                            confirm="Are you sure you want to cancel this enquiry?"
-                            invisible="state not in ('draft', 'send')"/>
+                            invisible="state != 'estimate'"/>
                     <button name="action_reset_draft"
                             string="Reset to Draft"
                             type="object"
@@ -36,20 +30,14 @@
                             invisible="state == 'draft'"/>
                     <field name="state"
                            widget="statusbar"
-                           statusbar_visible="draft,send,confirmed"/>
+                           statusbar_visible="draft,estimate,confirmed"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
-                    </div>
                     <group>
                         <group string="Customer Info">
                             <field name="customer_id"/>
                             <field name="no_of_adult"/>
                             <field name="no_of_child"/>
-                            <field name="no_of_pax"/>
                         </group>
                         <group string="Trip Info">
                             <field name="tour_start_date"/>
@@ -57,18 +45,13 @@
                             <field name="no_of_day" readonly="1"/>
                         </group>
                     </group>
-                    <group string="Follow Up">
-                        <group><field name="enquiry_priority" widget="priority"/></group>
-                        <group><field name="follow_up_date"/></group>
-                    </group>
                     <group string="Package">
                         <group>
-                            <field name="package_type" widget="radio" options="{'horizontal': True}"/>
+                            <field name="destination_city_id"/>
+                            <field name="package_id"/>
                         </group>
                         <group>
-                            <field name="destination_city_id"
-                                domain="[('country_id.name', '=', 'India')] if package_type == 'domestic' else [('country_id.name', '!=', 'India')]"/>
-                            <field name="package_id"/>
+                            <field name="package_type" widget="radio" options="{'horizontal': True}"/>
                         </group>
                     </group>
 
@@ -76,18 +59,16 @@
                         <!-- Options — Standard, Deluxe, Premium, Luxury -->
                         <page string="Options" name="options">
                                 <field name="option_ids" context="{
-                                    'default_enquiry_id': id,
-                                    'default_package_id': package_id,
+                                    'default_enquiry_id':    id,
+                                    'default_package_id':    package_id,
                                     'default_tour_start_date': tour_start_date
                                 }">
                                 <list>
-                                    <field name="is_selected" widget="boolean_toggle"/>
                                     <field name="package_category" string="Package Category"/>
                                     <field name="total_accomodation_cost" widget="monetary" string="Accommodation"/>
                                     <field name="total_transport_cost" widget="monetary" string="Transportation"/>
                                     <field name="total_addon_cost" widget="monetary" string="Additional"/>
                                     <field name="total_amount" widget="monetary" string="Total Amount"/>
-                                    <field name="selling_rate" widget="monetary" string="Selling Rate"/>
                                 </list>
                             </field>
                         </page>
@@ -104,14 +85,12 @@
         <field name="model">trip.manager.enquiry</field>
         <field name="arch" type="xml">
             <list>
-                <field name="name" readonly="1"/>
                 <field name="customer_id"/>
                 <field name="destination_city_id" string="Destination"/>
                 <field name="package_id" string="Package"/>
-                <field name="enquiry_priority" string="Priority" widget="priority"/>
                 <field name="tour_start_date" string="Start Date"/>
                 <field name="tour_end_date" string="End Date"/>
-                <field name="follow_up_date" string="Follow-up Date"/>
+                <field name="no_of_adult" string="Adults"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'confirmed'"
                        decoration-warning="state == 'estimate'"

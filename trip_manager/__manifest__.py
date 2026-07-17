@@ -13,11 +13,7 @@
         'base',
     ],
     'data': [
-        'security/trip_manager_security.xml',
         'security/ir.model.access.csv',
-        
-        'data/ir_sequence_data.xml',
-        'data/trip_manager_addon_category_data.xml',
         
         'report/trip_manager_enquiry_report.xml',
         
@@ -37,6 +33,7 @@
         'views/trip_manager_city_views.xml',
         'views/trip_manager_menus.xml'
     ],
+
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

@@ -9,8 +9,7 @@
             <list>
                 <field name="name"/>
                 <field name="max_occupancy"/>
-                <field name="extra_bed_price" widget="monetary"/>
-                <field name="room_rate" widget="monetary"/>
+                <field name="room_rate"/>
             </list>
         </field>
     </record>

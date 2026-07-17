@@ -129,51 +129,11 @@
         </table>
             <hr style="margin:10px 0;"/>
 
-        <!-- ================= PRICING ================= -->
-        <h4 style="margin:10px 0;">
-            Offer Price for <t t-esc="o.no_of_pax"/> Person(s)
-        </h4>
+            <!-- ================= PRICING ================= -->
+            <h4 style="margin:10px 0;">
+                Offer Price for <t t-esc="o.no_of_adult"/> Person(s)
+            </h4>
 
-        <!-- Show table only if at least one option has a flight amount -->
-        <t t-set="has_flight" t-value="any(opt.flight_total for opt in o.option_ids)"/>
-
-        <!-- CASE 1: Flight charges exist -->
-        <t t-if="has_flight">
-            <table style="width:70%; border-collapse:collapse; font-size:12px;">
-                <thead style="background:#e0e0e0;">
-                    <tr>
-                        <th style="border:1px solid #ccc; padding:6px; text-align:left;">Package Category</th>
-                        <th style="border:1px solid #ccc; padding:6px; text-align:right;">Package Cost</th>
-                        <th style="border:1px solid #ccc; padding:6px; text-align:right;">Flight Ticket</th>
-                        <th style="border:1px solid #ccc; padding:6px; text-align:right;">Grand Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
-                        <tr>
-                            <td style="border:1px solid #ccc; padding:5px; font-weight:bold;">
-                                <t t-esc="opt.package_category.capitalize()"/>
-                            </td>
-                            <td style="border:1px solid #ccc; padding:5px; text-align:right;">
-                                <t t-esc="opt.selling_rate"
-                                t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                            </td>
-                            <td style="border:1px solid #ccc; padding:5px; text-align:right;">
-                                <t t-esc="opt.flight_total"
-                                t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                            </td>
-                            <td style="border:1px solid #ccc; padding:5px; text-align:right;">
-                                <t t-esc="opt.selling_rate + opt.flight_total"
-                                t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                            </td>
-                        </tr>
-                    </t>
-                </tbody>
-            </table>
-        </t>
-
-        <!-- CASE 2: No flight charges -->
-        <t t-else="">
             <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
                 <p style="margin:3px 0;">
                     <strong>
@@ -181,13 +141,66 @@
                         (With <t t-esc="opt.package_category.capitalize()"/>)
                     </strong>
                     :
-                    <t t-esc="opt.selling_rate"
+                    <t t-esc="opt.total_amount"
                     t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                 </p>
             </t>
-        </t>
 
-        <hr style="margin:10px 0;"/>
+            <hr style="margin:10px 0;"/>
+
+            <!-- ================= COST BREAKUP ================= -->
+            <h4 style="margin:10px 0;">Cost Breakup</h4>
+
+            <table style="width:100%; border-collapse:collapse; font-size:12px;">
+
+                <thead style="background:#eee;">
+                    <tr>
+                        <th style="border:1px solid #ccc; padding:5px;">Category</th>
+
+                        <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
+                            <th style="border:1px solid #ccc; padding:5px;">
+                                <t t-esc="opt.package_category.capitalize()"/>
+                            </th>
+                        </t>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td style="border:1px solid #ccc; padding:5px;">Accommodation</td>
+                        <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
+                            <td style="border:1px solid #ccc; padding:5px;">
+                                <t t-esc="opt.total_accomodation_cost"
+                                    t-options='{"widget":"monetary","display_currency": o.currency_id}'/>
+                            </td>
+                        </t>
+                    </tr>
+
+                    <tr>
+                        <td style="border:1px solid #ccc; padding:5px;">Transportation</td>
+                        <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
+                            <td style="border:1px solid #ccc; padding:5px;">
+                                <t t-esc="opt.total_transport_cost"
+                                    t-options='{"widget":"monetary","display_currency": o.currency_id}'/>
+                            </td>
+                        </t>
+                    </tr>
+
+                    <tr>
+                        <td style="border:1px solid #ccc; padding:5px;">Additional</td>
+                        <t t-foreach="o.option_ids.sorted('package_category')" t-as="opt">
+                            <td style="border:1px solid #ccc; padding:5px;">
+                                <t t-esc="opt.total_addon_cost"
+                                    t-options='{"widget":"monetary","display_currency": o.currency_id}'/>
+                            </td>
+                        </t>
+                    </tr>
+
+                </tbody>
+
+            </table>
+            <hr style="margin:12px 0;"/>
 
             <!-- ================= INCLUSIONS ================= -->
             <t t-if="o.package_id.included_items">

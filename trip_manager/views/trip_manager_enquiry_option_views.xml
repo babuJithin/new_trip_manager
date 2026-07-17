@@ -8,64 +8,54 @@
         <field name="arch" type="xml">
             <form string="Package Option">
                 <sheet>
-                    <field name="tour_start_date" invisible="1"/>
                     <field name="package_category" widget="radio" options="{'horizontal': True}" />
-                    <group>
-                        <group string="Cost Summary">
+                    <group string="Cost Summary">
+                        <group>
                             <field name="total_accomodation_cost"
                                    widget="monetary" string="Accommodation"/>
                             <field name="total_transport_cost"
                                    widget="monetary" string="Transportation"/>
+                        </group>
+                        <group>
                             <field name="total_addon_cost"
                                    widget="monetary" string="Additional"/>
                             <field name="total_amount"
                                    widget="monetary" string="Total"/>
-                            <field name="flight_total"
-                                   widget="monetary" string="Flight"/>
                             <field name="currency_id" invisible="1"/>
-                        </group>
-                        <group string="Price Info">
-                            <field name="margin_surplus"/>
-                            <field name="min_selling_rate"/>
-                            <field name="selling_rate"/>
-                            <field name="profit_amount"/>
-                            <field name="profit_percentage"/>
                         </group>
                     </group>
 
                     <notebook>
                          <!-- Itineary Overview -->
-                        <page string="Itinerary Overview">
-                            <field name="package_itineary_ids" readonly="1"
-                                context="{'tour_start_date': tour_start_date}">
+                        <page string="Itinerary Overview" name="itinerary">
+                            <field name="booking_line_ids" readonly="1">
                                 <list>
-                                    <field name="actual_date"/>
-                                    <field name="description" widget="html"/>
+                                    <field name="actual_date" string="Date"/>
                                     <field name="destination_ids" widget="many2many_tags"/>
+                                    <field name="itineary_description" widget="html" string="Description"/>
                                 </list>
                             </field>
                         </page>
 
                         <!-- Accommodation -->
                         <page string="Accommodation" name="accommodation">
-                            <field name="booking_line_ids">
+                            <field name="booking_line_ids" context="{'default_package_category': package_category}">
                                 <list editable="bottom">
                                     <field name="actual_date"
-                                           readonly="1" string="Date" force_save="1"/>
-                                    <field name="itineary_id" column_invisible="1"/>
+                                           readonly="1" string="Date"/>
                                     <field name="destination_ids"
-                                           widget="many2many_tags" readonly="1" force_save="1"/>
-                                    <field name="package_category" column_invisible="1"/>
+                                           widget="many2many_tags" readonly="1"/>
                                     <field name="available_hotel_ids" column_invisible="1"/>
-                                    <field name="hotel_id"
-                                            domain="[('id', 'in', available_hotel_ids)]"
-                                            context="{'preferred_stars': package_category}"/>
+                                    <field name="hotel_id"/>
                                     <field name="room_type_id"
                                            domain="[('hotel_id', '=', hotel_id)]"/>
-                                    <field name="room_rate"/>
-                                    <field name="no_of_rooms"/>
-                                    <field name="extra_bed_price"/>
+                                    <field name="room_rate" readonly="1"/>
                                     <field name="no_of_extra_bed"/>
+                                    <field name="extra_bed_price"
+                                           readonly="1" optional="show"/>
+                                    <field name="no_of_rooms"/>
+                                    <field name="extra_bed_cost"
+                                           readonly="1" optional="hide"/>
                                     <field name="total_line_cost" readonly="1"/>
                                     <field name="currency_id" column_invisible="1"/>
                                 </list>
@@ -79,15 +69,12 @@
 
                         <!-- Transportation -->
                         <page string="Transportation" name="transportation">
-                            <field name="transport_line_ids"
-                            context="{'default_actual_date': tour_start_date,
-                                       'tour_start_date': tour_start_date,
-                                        'tour_end_date': tour_end_date}">
+                            <field name="transport_line_ids">
                                 <list editable="bottom">
                                     <field name="actual_date"/>
                                     <field name="vehicle_id"/>
-                                    <field name="rent_per_day"/>
-                                    <field name="total_transport_cost"/>
+                                    <field name="rent_per_day" readonly="1"/>
+                                    <field name="total_transport_cost" readonly="1"/>
                                     <field name="transport_notes"
                                            string="Notes" optional="show"/>
                                     <field name="currency_id" column_invisible="1"/>
@@ -100,7 +87,6 @@
                             </group>
                         </page>
 
-                        <!-- Inclusion -->
                         <page string="Inclusions" name="inclusions">
                             <field name="addon_ids">
                                 <list editable="bottom">
@@ -108,29 +94,12 @@
                                     <field name="is_guide_category" column_invisible="1"/>
                                     <field name="guide_id" string="Guide"
                                         invisible="not is_guide_category"/>
+                                    <field name="name" string="Item Details"/>
                                     <field name="description" string="Notes"/>
                                     <field name="cost" widget="monetary"/>
                                     <field name="currency_id" column_invisible="1"/>
                                 </list>
                             </field>
-                        </page>
-
-                        <!-- Flight -->
-                        <page string="Flight" name="flight">
-                            <field name="flight_line_ids">
-                                <list editable="bottom">
-                                    <field name="currency_id" column_invisible="1"/>
-                                    <field name="from_place"/>
-                                    <field name="to_place"/>
-                                    <field name="flight_name"/>
-                                    <field name="rate"/>
-                                    <field name="no_of_pax"/>
-                                    <field name="total" sum="Grand Total"/>
-                                </list>
-                            </field>
-                            <group class="oe_subtotal_footer oe_right">
-                                <field name="flight_total" readonly="1" widget="monetary"/>
-                            </group>
                         </page>
                     </notebook>
                 </sheet>

@@ -17,4 +17,3 @@ from . import trip_manager_booking_transport
 from . import trip_manager_enquiry_addon
 from . import trip_manager_enquiry_option
 from . import trip_manager_addon_category
-from . import trip_manager_flight_line

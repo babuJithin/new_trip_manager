@@ -22,13 +22,13 @@
                     <group col="3">
                         <group>
                             <field name="name"/>
-                            <field name="from_city_id"/>
+                            <field name="from_city"/>
                             <field name="no_of_day"/>
-                            <field name="no_of_night"/>
+                            <field name="destination_city_id"/>
                         </group>
                         <group>
-                            <field name="destination_city_id"/>
-                            <field name="package_type" widget="radio"/>
+                            <field name="package_category"/>
+                            <field name="margin_surplus"/>
                         </group>
                         <group>
                             <field name="image" widget="image" nolabel="1"
@@ -39,12 +39,10 @@
                         <page string="Itinearies">
                             <field name="itineary_ids">
                                 <list editable="bottom">
-                                    <field name="package_destination_city_id" column_invisible="1"/>
                                     <field name="day_number"/>
                                     <field name="description" widget="html"/>
-                                    <field name="destination_domain" column_invisible="1"/>
-                                    <field name="destination_ids" widget="many2many_tags" domain="destination_domain"/>
-                                    <field name="available_city_ids" column_invisible="1"/>
+                                    <field name="destination_ids" widget="many2many_tags"/>
+                                    <field name="available_city_ids" invisible="1" column_invisible="True"/>
                                 </list>
                             </field>
                         </page>
@@ -73,7 +71,7 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
-                <field name="from_city_id"/>
+                <field name="from_city"/>
                 <field name="no_of_day"/>
                 <field name="destination_city_id"/>
             </list>
@@ -90,9 +88,9 @@
                 <field name="name"/>
                 <field name="image"/>
                 <field name="destination_city_id"/>
-                <field name="package_type"/>
+                <field name="package_category"/>
                 <field name="no_of_day"/>
-                <field name="from_city_id"/>
+                <field name="from_city"/>
                 <templates>
                     <t t-name="card">
 
@@ -119,7 +117,7 @@
                             <!-- Package Type + Category tags -->
                             <div class="mb-1">
                                 <span class="badge rounded-pill text-bg-secondary">
-                                    <field name="package_type"/>
+                                    <field name="package_category"/>
                                 </span>
                             </div>
 
@@ -132,7 +130,7 @@
                             <div class="d-flex align-items-center justify-content-between text-muted small mb-1">
                                 <span>
                                     <i class="fa fa-plane me-1" title="Departure City"/>
-                                    From: <field name="from_city_id"/>
+                                    From: <field name="from_city"/>
                                 </span>
                                 <span>
                                     <i class="fa fa-calendar me-1" title="Duration"/>
